@@ -21,6 +21,7 @@ red MeshCore en Santander, Colombia, medido con la app MeshCore One (iphone) en 
   - [Motivación](#motivación)
   - [Diseño](#diseño)
     - [Dimensiones](#dimensiones)
+    - [Nota técnica: ¿por qué el driven es más largo que el reflector?](#nota-técnica-por-qué-el-driven-es-más-largo-que-el-reflector)
   - [Lista de materiales (BOM)](#lista-de-materiales-bom)
     - [Herramientas usadas](#herramientas-usadas)
   - [Construcción](#construcción)
@@ -83,6 +84,40 @@ Diámetro de varilla usado en todos los elementos: **3 mm** (radio 1.5 mm en el 
 | Director   | 139.6 mm | 71.1 mm                     | 24.6 mm                            |
 
 Boom total (reflector a director): **71.1 mm**.
+
+### Nota técnica: ¿por qué el driven es más largo que el reflector?
+
+A simple vista las longitudes de esta antena rompen la regla de dedo clásica de una Yagi
+(reflector más largo que el driven, driven más largo que el director): aquí el **driven
+(158.6 mm) es incluso más largo que el reflector (153.3 mm)**. Esto no es un error del
+modelo ni de la medición; tiene una explicación técnica:
+
+1. **Es un diseño optimizado por NEC (Método de los Momentos), no calculado con fórmulas
+   clásicas.** Las reglas de dedo tradicionales (reflector ~5% más largo que el driven
+   resonante, director ~5% más corto) asumen espaciados "de libro" (~0.15–0.25λ) en espacio
+   libre. MMANA-GAL resuelve la corriente real sobre cada elemento considerando el
+   acoplamiento mutuo entre ellos, en vez de aplicar esas fórmulas. Cuando el optimizador
+   ajusta longitudes para cumplir un objetivo (SWR bajo, ganancia, F/B), puede llegar a
+   proporciones que no siguen la jerarquía clásica, siempre que el resultado
+   electromagnético sea correcto.
+
+2. **El espaciado de este diseño es inusualmente compacto**, lo que intensifica el efecto
+   anterior:
+   - Reflector → driven: 46.5 mm (~0.14λ a 915 MHz)
+   - Driven → director: solo 24.6 mm (~0.075λ)
+   - Boom total: 71.1 mm (~0.22λ)
+
+   Con el director a menos de 0.08λ del driven, el acoplamiento mutuo es mucho más fuerte
+   que en una Yagi de boom largo. Esa reactancia mutua "carga" eléctricamente al driven, y
+   para que siga resonando cerca de 50 Ω reales el optimizador necesita compensar
+   alargándolo, incluso por encima del reflector — un comportamiento típico de diseños
+   *short-boom / close-spaced*.
+
+3. **La evidencia de que el diseño es correcto está en los propios resultados de la
+   simulación**: SWR de 1.02:50 Ω, F/B de 7.87 dB y ganancia de 13.03 dBi (con tierra real a
+   5 m) no son números casuales, sino la señal de que el modelo converge a una solución
+   físicamente válida, aunque no respete la heurística de "el reflector siempre es el
+   elemento más largo".
 
 ## Lista de materiales (BOM)
 
