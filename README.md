@@ -24,6 +24,7 @@ red MeshCore en Santander, Colombia, medido con la app MeshCore One (iphone) en 
     - [Nota técnica: ¿por qué el driven es más largo que el reflector?](#nota-técnica-por-qué-el-driven-es-más-largo-que-el-reflector)
   - [Lista de materiales (BOM)](#lista-de-materiales-bom)
     - [Herramientas usadas](#herramientas-usadas)
+  - [Piezas impresas en 3D (v2)](#piezas-impresas-en-3d-v2)
   - [Construcción](#construcción)
   - [Medición y ajuste](#medición-y-ajuste)
   - [Prueba de campo](#prueba-de-campo)
@@ -138,6 +139,36 @@ modelo ni de la medición; tiene una explicación técnica:
 - Cortafrío / cizalla para las varillas
 - Multímetro (continuidad)
 - *(Se requiere NanoVNA)*
+
+## Piezas impresas en 3D (v2)
+
+Archivos en [`files/`](files/), generados con `files/build_boom.py` (CadQuery). Medidas en mm, sección de boom 8.9 × 8.9.
+
+| Archivo | Qué es |
+|---------|--------|
+| `Yagi_915MHz_v2.stl` | Boom de 212 mm (de X = −12 a 200, reflector en X = 0). Punta redondeada, aristas con chaflán, indicativo **HJ7-RMN** grabado y tramo cuadrado para el soporte GoPro. |
+| `sd_yagi_915mhz_sizing_block_v2.stl` | Bloque de corte de varillas, 22.2 × 191 × 5. |
+| `sd_yagi_gopro_mount_v2.stl` | Manguito de 15 mm para el boom con horquilla GoPro de 2 puntas (hueco 3.2, agujero Ø5). |
+
+**Boom**
+- Reflector (X = 0) y director (X = 71.1): un agujero pasante de Ø3.2 mm a lo ancho del boom.
+- Driven (X = 46.5): nicho para la regleta (dipolo cortado); la regleta sobresale arriba y por los lados.
+- Alineación: el eje de la varilla queda a la misma altura (Z = 6.0) en los 3 elementos. La fija el nicho (piso de 2 mm + 4 mm de la base de la regleta a su túnel), y los dos agujeros se perforan a esa altura.
+- Medidas supuestas, a confirmar con calibre contra tu regleta: `BLOCK_X` (10 mm, ancho de la regleta) y `TUNNEL_Z` (4 mm, de la base al eje del túnel). Se cambian en `build_boom.py`.
+
+**Bloque de corte**
+- 3 ranuras cerradas de 3.4 mm, con la longitud grabada debajo: **R** 153.3, **D** 158.6 y **T** 139.6. Cada ranura mide la longitud nominal + 0.4 mm. Se corta la varilla un poco larga y se lima hasta que cae justa. El driven se ajusta luego con el NanoVNA.
+- Línea central en las 3 ranuras. En reflector y director hay además dos marcas a 4.45 mm (medio ancho de boom) a cada lado del centro: son las caras del boom al armar, y sirven para centrar la varilla.
+
+**Soporte GoPro**
+- Va sobre el tramo cuadrado del lado del director; el boom largo permite deslizarlo para balancear la antena.
+
+**Regenerar**
+
+```bash
+pip install cadquery
+cd files && python3 build_boom.py
+```
 
 ## Construcción
 
