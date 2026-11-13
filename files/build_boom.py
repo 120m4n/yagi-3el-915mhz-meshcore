@@ -6,13 +6,15 @@ import cadquery as cq
 
 ELEMENTS = {"reflector": 0.0, "driven": 46.5, "director": 71.1}  # posicion X (modelo MMANA)
 BOOM_W = 8.9       # ancho (Y = direccion de los elementos) -- ORIGINAL v1
-BOOM_H = 8.9       # alto (Z)                               -- ORIGINAL v1
+BOOM_H = 11.0      # alto (Z): sube para que el eje a ZA=8 quede con pared sobre el agujero
 ROD_D = 3.0        # varilla
 HOLE_D = ROD_D + 0.2
 CALLSIGN = "HJ7-RMN"
 # Regleta (bornera) del driven -- SUPUESTOS, medir con calibre:
-BLOCK_X = 10.0     # ancho de la regleta a lo largo del boom
-TUNNEL_Z = 4.0     # distancia de la base de la regleta al eje de su tunel (por donde entra la varilla)
+BLOCK_X = 9.0      # ancho de la regleta a lo largo del boom (medido 8 + 1 de tolerancia)
+BLOCK_Y = 22.0     # largo de la regleta en Y (direccion de los elementos): las aletas la sostienen
+WALL = 2.0         # espesor de las aletas laterales
+TUNNEL_Z = 6.0     # base de la regleta al eje del alambre: 5 medidos + 1 de pegamento
 FLOOR = 2.0        # piso que queda bajo la regleta (el boom no se parte)
 CLEAR = 0.3        # holgura del nicho
 # Forma (como el v1): punta redondeada, aristas largas achaflanadas, rampa a un extremo cuadrado para el manguito GoPro
@@ -43,15 +45,21 @@ for sy in (-1, 1):
                 .workplane(offset=RAMP_L).polyline(corner(sy, sz, 0.02, 0)).close().loft())
         boom = boom.cut(k.union(ramp))
 
+# aletas del driven: bandeja (piso + 2 paredes en X) de BLOCK_Y de ancho, hasta el eje del alambre, que sostiene la regleta de 22 mm
+xd = ELEMENTS["driven"]
+TRAY_X, TRAY_Y = BLOCK_X + 2 * CLEAR, BLOCK_Y + 2 * CLEAR
+tray = cq.Workplane("XY").box(TRAY_X + 2 * WALL, TRAY_Y, ZA, centered=(True, True, False)).translate((xd, 0, 0))
+boom = boom.union(tray)
+
 for name, x in ELEMENTS.items():
     if name == "driven":  # nicho abierto arriba y por los lados Y: la regleta sobresale del boom, como en la foto
-        cut = cq.Workplane("XY").box(BLOCK_X + 2 * CLEAR, BOOM_W + 2, BOOM_H, centered=(True, True, False)).translate((x, 0, FLOOR))
+        cut = cq.Workplane("XY").box(TRAY_X, TRAY_Y + 2, BOOM_H, centered=(True, True, False)).translate((x, 0, FLOOR))
     else:                 # elemento continuo: un agujero pasante en Y
         cut = cq.Workplane("XZ").center(x, ZA).circle(HOLE_D / 2).extrude((BOOM_W + 2) / 2, both=True)
     boom = boom.cut(cut)
 
 # indicativo grabado en la cara superior, entre reflector y nicho del driven (se lee con la punta a la izquierda)
-xt = (ELEMENTS["reflector"] + ELEMENTS["driven"] - BLOCK_X / 2) / 2
+xt = (ELEMENTS["reflector"] + ELEMENTS["driven"] - TRAY_X / 2 - WALL) / 2
 boom = boom.cut(cq.Workplane("XY").workplane(offset=BOOM_H - 0.6).center(xt, 0)
                 .text(CALLSIGN, 4.0, 1.0, combine=False, halign="center", valign="center"))
 
