@@ -142,7 +142,7 @@ modelo ni de la medición; tiene una explicación técnica:
 
 ## Piezas impresas en 3D (v2)
 
-Archivos en [`files/`](files/), generados con `files/build_boom.py` (CadQuery). Medidas en mm, sección de boom 8.9 × 8.9.
+Archivos en [`files/`](files/), generados con `files/build_boom.py` (CadQuery). Medidas en mm, sección de boom 8.9 (ancho) × 11 (alto).
 
 | Archivo | Qué es |
 |---------|--------|
@@ -152,9 +152,9 @@ Archivos en [`files/`](files/), generados con `files/build_boom.py` (CadQuery). 
 
 **Boom**
 - Reflector (X = 0) y director (X = 71.1): un agujero pasante de Ø3.2 mm a lo ancho del boom.
-- Driven (X = 46.5): nicho para la regleta (dipolo cortado); la regleta sobresale arriba y por los lados.
-- Alineación: el eje de la varilla queda a la misma altura (Z = 6.0) en los 3 elementos. La fija el nicho (piso de 2 mm + 4 mm de la base de la regleta a su túnel), y los dos agujeros se perforan a esa altura.
-- Medidas supuestas, a confirmar con calibre contra tu regleta: `BLOCK_X` (10 mm, ancho de la regleta) y `TUNNEL_Z` (4 mm, de la base al eje del túnel). Se cambian en `build_boom.py`.
+- Driven (X = 46.5): nicho de 9.6 mm (regleta 8 mm + 1 de tolerancia + 0.3 de holgura por lado) con aletas: una bandeja de 22.6 mm de ancho (Y), con piso de 2 mm y dos paredes de 2 mm a los lados, hasta el eje del alambre, que sostiene la regleta de 22 mm. La regleta sobresale arriba y por los lados.
+- Alineación: el eje de la varilla queda a la misma altura (Z = 8.0) en los 3 elementos. La fija el nicho (piso de 2 mm + 6 mm de la base de la regleta al eje del alambre de Ø3: 5 medidos + 1 de pegamento), y los dos agujeros se perforan a esa altura.
+- Medidas tomadas de la regleta: `BLOCK_X` (9 mm, ancho a lo largo del boom), `BLOCK_Y` (22 mm, largo), `TUNNEL_Z` (6 mm, de la base al eje del alambre) y `WALL` (2 mm, aletas). Se cambian en `build_boom.py`.
 
 **Bloque de corte**
 - 3 ranuras cerradas de 3.4 mm, con la longitud grabada debajo: **R** 153.3, **D** 158.6 y **T** 139.6. Cada ranura mide la longitud nominal + 0.4 mm. Se corta la varilla un poco larga y se lima hasta que cae justa. El driven se ajusta luego con el NanoVNA.
