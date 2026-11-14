@@ -1,6 +1,6 @@
 """Piezas 3D Yagi 3el 915 MHz: boom con nichos de bornera, bloque de corte y soporte GoPro.
 Uso: python3 build_boom.py  (genera los 3 STL v2 en esta carpeta)
-Ejes: X = largo del boom (reflector en 0), Y = a lo ancho (direccion de los elementos), Z = alto.
+Ejes: X = largo del boom (reflector en 0; punta redondeada del lado directores, extremo cuadrado + GoPro del lado reflector), Y = a lo ancho (direccion de los elementos), Z = alto.
 Todas las medidas en mm. AJUSTAR con calibre: BLOCK_X, BOOM_W, BOOM_H, COAX_D."""
 import cadquery as cq
 
@@ -18,31 +18,35 @@ TUNNEL_Z = 6.0     # base de la regleta al eje del alambre: 5 medidos + 1 de peg
 FLOOR = 2.0        # piso que queda bajo la regleta (el boom no se parte)
 CLEAR = 0.3        # holgura del nicho
 # Forma (como el v1): punta redondeada, aristas largas achaflanadas, rampa a un extremo cuadrado para el manguito GoPro
-NOSE_X, NOSE_R = -12.0, 3.0   # punta (lado reflector) y su radio en planta
+NOSE_R = 3.0                  # radio de la punta redondeada (lado ultimo director) en planta
 CH = 1.2                      # chaflan de las 4 aristas largas (v1: 1.6; menor para no tocar el agujero)
 RAMP_L = 10.0                 # rampa chaflan->cuadrado
-END_X = 200.0                 # extremo del lado GoPro, medido desde el reflector (X=0); el tramo cuadrado llega hasta aqui
+NOSE_X = ELEMENTS["director"] + 12.0  # punta redondeada, 12 mm tras el ultimo director
+TAIL_X = -34.0                # extremo cuadrado del lado reflector: ahi va el soporte GoPro (cerca del driver)
 
 # ALINEACION: el eje de la varilla queda a la misma altura ZA en los 3 elementos.
 # El nicho del driven fija ZA (piso + eje del tunel de la regleta); reflector y director se perforan a esa misma ZA.
 ZA = FLOOR + TUNNEL_Z
 assert ZA + HOLE_D / 2 <= BOOM_H - CH, f"ZA={ZA}: el agujero toca el chaflan; bajar TUNNEL_Z/FLOOR o CH"
 
-ramp0 = ELEMENTS["director"] + 4.0           # el chaflan termina 4 mm tras el director
-ramp1 = ramp0 + RAMP_L
-x0, x1 = NOSE_X, END_X
-assert x1 - ramp1 >= 15, 'el tramo cuadrado debe cubrir los 15 mm del manguito GoPro'
+ramp0 = ELEMENTS["reflector"] - 4.0          # el chaflan termina 4 mm antes del reflector
+ramp1 = ramp0 - RAMP_L                       # rampa hacia el tramo cuadrado (lado reflector)
+x0, x1 = TAIL_X, NOSE_X
+SLEEVE = 15.0                                # largo del manguito GoPro
+# PRUEBA BASICA DE ORIENTACION: el GoPro va en el tramo cuadrado, con a lo mas 1 elemento (el reflector) entre el manguito y el driver
+assert ramp1 - x0 >= SLEEVE, "el tramo cuadrado debe cubrir los 15 mm del manguito GoPro"
+assert list(ELEMENTS)[1] == "driven" and sum(ELEMENTS["driven"] > v > x0 + SLEEVE for v in ELEMENTS.values()) <= 1, "GoPro a mas de 1 elemento del driver"
 boom = cq.Workplane("XY").box(x1 - x0, BOOM_W, BOOM_H, centered=(False, True, False)).translate((x0, 0, 0))
-boom = boom.edges("|Z and <X").fillet(NOSE_R)   # punta redondeada en planta
+boom = boom.edges("|Z and >X").fillet(NOSE_R)   # punta redondeada en planta
 
 def corner(sy, sz, c, x):  # triangulo de chaflan en la esquina (sy*W/2, sz*H) del plano YZ a la posicion x
     cy, cz = sy * BOOM_W / 2, BOOM_H / 2 + sz * BOOM_H / 2
     return [(cy, cz), (cy - sy * c, cz), (cy, cz - sz * c)]
 for sy in (-1, 1):
     for sz in (-1, 1):
-        k = cq.Workplane("YZ").workplane(offset=x0 - 1).polyline(corner(sy, sz, CH, 0)).close().extrude(ramp0 - x0 + 1)
+        k = cq.Workplane("YZ").workplane(offset=ramp0).polyline(corner(sy, sz, CH, 0)).close().extrude(x1 - ramp0 + 1)
         ramp = (cq.Workplane("YZ").workplane(offset=ramp0).polyline(corner(sy, sz, CH, 0)).close()
-                .workplane(offset=RAMP_L).polyline(corner(sy, sz, 0.02, 0)).close().loft())
+                .workplane(offset=-RAMP_L).polyline(corner(sy, sz, 0.02, 0)).close().loft())
         boom = boom.cut(k.union(ramp))
 
 # aletas del driven: bandeja (piso + 2 paredes en X) de BLOCK_Y de ancho, hasta el eje del alambre, que sostiene la regleta de 22 mm
